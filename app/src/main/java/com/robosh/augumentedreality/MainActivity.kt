@@ -1,54 +1,94 @@
 package com.robosh.augumentedreality
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.ActivityInfo
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Base64
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SensorEventListener {
+
+    private var mSensorManager: SensorManager? = null
+    private var mSensorAccelerometer: Sensor? = null
+    private var mSensorMagnetometer: Sensor? = null
+    private var mAccelerometerData = FloatArray(3)
+    private var mMagnetometerData = FloatArray(3)
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+        mSensorManager = getSystemService(
+            Context.SENSOR_SERVICE
+        ) as SensorManager
+        mSensorAccelerometer = mSensorManager?.getDefaultSensor(
+            Sensor.TYPE_ACCELEROMETER
+        )
+        mSensorMagnetometer = mSensorManager?.getDefaultSensor(
+            Sensor.TYPE_MAGNETIC_FIELD
+        )
+
         WebView.setWebContentsDebuggingEnabled(true);
         webView.settings.javaScriptEnabled = true
-        webView.addJavascriptInterface(WebAppInterface(this), "Android")
 
-        val unencodedHtml = "<!doctype html>\n" +
-                "<html lang=en >\n" +
-                "<head>\n" +
-                "<title>Rewolution With Dumping Circular Wawes</title>\n" +
-                "<meta charset=utf-8 >\n" +
-                "<meta name=viewport content=width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0 >\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "<input type=\"button\" value=\"Say hello\" onClick=\"showAndroidToast('Hello Android!')\" />\n" +
-                "\n" +
-                "<script type=\"text/javascript\">\n" +
-                "    let a = 0;\n" +
-                " function putValue(value) {\n" +
-                "  a = value;\n" +
-                " }\n" +
-                "    function showAndroidToast(toast) {\n" +
-                "        Android.showToast(a);\n" +
-                "    }\n" +
-                "</script>" +
-                "dasdas\n" +
-                "\n" +
-                "</body>\n" +
-                "</html>"
-        val encodedHtml = Base64.encodeToString(unencodedHtml.toByteArray(), Base64.NO_PADDING)
-
-        androidButton.setOnClickListener {
-            webView.loadUrl("javascript:showAndroidToast('Hello Android!')")
-        }
-        putValueButton.setOnClickListener {
-            webView.loadUrl("javascript:putValue(5)")
-        }
+        val encodedHtml = Base64.encodeToString(htmlThreeJsCode.toByteArray(), Base64.NO_PADDING)
         webView.loadData(encodedHtml, "text/html", "base64")
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        if (mSensorAccelerometer != null) {
+            mSensorManager?.registerListener(
+                this, mSensorAccelerometer,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+        }
+        if (mSensorMagnetometer != null) {
+            mSensorManager?.registerListener(
+                this, mSensorMagnetometer,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mSensorManager?.unregisterListener(this)
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    }
+
+    override fun onSensorChanged(sensorEvent: SensorEvent?) {
+        when (sensorEvent!!.sensor.type) {
+            Sensor.TYPE_ACCELEROMETER -> mAccelerometerData = sensorEvent.values.clone()
+            Sensor.TYPE_MAGNETIC_FIELD -> mMagnetometerData = sensorEvent.values.clone()
+            else -> return
+        }
+
+        val rotationMatrix = FloatArray(9)
+        val rotationOK = SensorManager.getRotationMatrix(
+            rotationMatrix,
+            null, mAccelerometerData, mMagnetometerData
+        )
+        val orientationValues = FloatArray(3)
+        if (rotationOK) {
+            SensorManager.getOrientation(rotationMatrix, orientationValues)
+        }
+        val azimuth = orientationValues[0]
+        val pitch = orientationValues[1]
+        val roll = orientationValues[2]
+        webView.loadUrl("javascript:setAxisA($azimuth, $pitch, $roll)")
     }
 }

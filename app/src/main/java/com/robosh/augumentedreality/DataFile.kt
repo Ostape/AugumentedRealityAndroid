@@ -1,6 +1,6 @@
 package com.robosh.augumentedreality
 
-val OREST_LAB = "<!doctype html>\n" +
+const val htmlThreeJsCode = "<!doctype html>\n" +
         "<html lang=en >\n" +
         "<head>\n" +
         "<title>Rewolution With Dumping Circular Wawes</title>\n" +
@@ -12,7 +12,10 @@ val OREST_LAB = "<!doctype html>\n" +
         "<script src=http://mrdoob.github.io/three.js/examples/js/controls/TrackballControls.js ></script>\n" +
         "dasdas\n" +
         "\n" +
-        "<script>\n" +
+        "<script   type=\"text/javascript\">\n" +
+        "\n" +
+        "\t\t\t// let mouseY = 0;\n" +
+        "\t\t\t// let mouseZ = 0;\n" +
         "\n" +
         "\tvar renderer, scene, controls;\n" +
         "\tvar geometry, material, mesh;////\n" +
@@ -21,6 +24,7 @@ val OREST_LAB = "<!doctype html>\n" +
         "\n" +
         "\tlet camera;\n" +
         "\n" +
+        "\tvar count = 0;\n" +
         "\n" +
         "\tvar a = 0.7;\n" +
         "\tvar b = 0.9;\n" +
@@ -34,11 +38,21 @@ val OREST_LAB = "<!doctype html>\n" +
         "\tinit();\n" +
         "\tanimate();\n" +
         "\n" +
+        "\tvar az = 0, pit = 0, rol=0;\n" +
+        "\n" +
+        "\tfunction setAxisA(azimuth, pitch, roll) {\n" +
+        "\t\taz = azimuth;\n" +
+        "\t\tpit = pitch;\n" +
+        "\t\trol = roll;\n" +
+        "\t\tconsole.log(\"AAAA\")\n" +
+        "\n" +
+        "\t}\n" +
+        "\n" +
         "\tfunction init() {\n" +
         "\n" +
         "\t\tcamera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.01, 100 );\n" +
-        "\t\tcamera.position.z = 3;////\n" +
-        "\t\tcamera.focalLength = 3;\n" +
+        "\t\t// camera.position.z = 3;////\n" +
+        "\t\t// camera.focalLength = 3;\n" +
         "\n" +
         "\t\t// document.body.style.cssText = 'margin: 0; overflow: hidden; ' ;///\n" +
         "\n" +
@@ -48,7 +62,7 @@ val OREST_LAB = "<!doctype html>\n" +
         "\t\tscene = new THREE.Scene();\n" +
         "\n" +
         "\t\tcamera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );\n" +
-        "\t\tcamera.position.set( 100, 100, -100 );/// here?\n" +
+        "\t\tcamera.position.set( 0, 60, -30 );/// here?\n" +
         "\t\tcontrols = new THREE.TrackballControls( camera, renderer.domElement );\n" +
         "\n" +
         "\t\tgeometry = new THREE.ParametricGeometry( rewolutionWithDumpingCircularWawes, 36, 100 );\n" +
@@ -59,7 +73,7 @@ val OREST_LAB = "<!doctype html>\n" +
         "\n" +
         "\tfunction rewolutionWithDumpingCircularWawes(v, u, vector) {\n" +
         "\n" +
-        "\t\tkoef = 100;\n" +
+        "\t\tkoef = 10;\n" +
         "        u *= koef\n" +
         "        v *= koef\n" +
         "\n" +
@@ -83,9 +97,19 @@ val OREST_LAB = "<!doctype html>\n" +
         "\tfunction cos( a ){ return Math.cos( a ); }\n" +
         "\tfunction sin( a ){ return Math.sin( a ); }\n" +
         "\n" +
+        "\n" +
         "\tfunction animate() {\n" +
         "\t\trequestAnimationFrame( animate );\n" +
         "\t\trenderer.render( scene, camera );\n" +
+        "\n" +
+        "\t\tvar euler = new THREE.Euler();\n" +
+        "\t\tcount+= 0.001;\n" +
+        "\t\tif (count > 0.9) {\n" +
+        "\t\t\tcount = -1;\n" +
+        "\t\t}\n" +
+        "\t\teuler.set( pit, rol, -az, 'YXZ' );\n" +
+        "\t\tmesh.quaternion.setFromEuler( euler );\n" +
+        "\n" +
         "\t\tcontrols.update();\n" +
         "\t}\n" +
         "\n" +
